@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CRM Simples – Exemplo</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2f6f7;--card:#fff;--ink:#14323d;--mute:#5d7580;--line:#d5e0e4;--brand:#1f4e5f;--brand-ink:#fff;--warn:#c0392b;--ok:#1d8a5a;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1d23;--card:#172a32;--ink:#e6f0f3;--mute:#93adb7;--line:#2a424c;--brand:#6fb7cf;--brand-ink:#0f1d23;--warn:#ff8a7a;--ok:#5fd0a0;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1d23;--card:#172a32;--ink:#e6f0f3;--mute:#93adb7;--line:#2a424c;--brand:#6fb7cf;--brand-ink:#0f1d23;--warn:#ff8a7a;--ok:#5fd0a0;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Plus Jakarta Sans",system-ui,sans-serif;font-size:15px}
+main{max-width:1180px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:26px;font-weight:800;margin:0 0 2px}
+.sub{color:var(--mute);margin:0 0 18px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.kpi b{display:block;font-size:22px;font-weight:800;color:var(--brand)}
+.kpi span{color:var(--mute);font-size:13px}
+.add{display:grid;grid-template-columns:2fr 1.4fr 1fr 1fr auto;gap:8px;margin-bottom:18px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:8px;min-width:0;width:100%}
+button{font:inherit;font-weight:600;background:var(--brand);color:var(--brand-ink);border:0;border-radius:7px;padding:8px 14px;cursor:pointer}
+button.ghost{background:transparent;color:var(--mute);padding:2px 6px}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.board{display:grid;grid-template-columns:repeat(5,minmax(200px,1fr));gap:10px;overflow-x:auto;padding-bottom:6px}
+.col{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;min-height:160px}
+.col h2{font-size:14px;font-weight:800;margin:0 0 8px;display:flex;justify-content:space-between}
+.col h2 em{font-style:normal;color:var(--mute);font-weight:600}
+.lead{border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:8px;padding:8px;margin-bottom:8px;background:var(--bg)}
+.lead.late{border-left-color:var(--warn)}
+.lead b{display:block}
+.lead small{color:var(--mute);display:block;margin:2px 0}
+.lead .row{display:flex;gap:4px;align-items:center;margin-top:6px}
+.late-t{color:var(--warn);font-weight:600}
+.lost{margin-top:18px;color:var(--mute);font-size:13px}
+.empty{color:var(--mute);font-size:13px}
+@media(max-width:760px){.add{grid-template-columns:1fr 1fr}.add input:first-child{grid-column:1/-1}.add button{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<main>
+<h1>CRM Simples</h1>
+<p class="sub">Exemplo com dados fictícios. Adicione leads, mova entre etapas e acompanhe os números.</p>
+<section class="kpis" id="kpis" aria-label="Resumo"></section>
+<section class="add" aria-label="Novo lead">
+  <input id="n" placeholder="Nome do lead" aria-label="Nome">
+  <input id="t" placeholder="Telefone" aria-label="Telefone">
+  <input id="v" type="number" min="0" placeholder="Valor (R$)" aria-label="Valor">
+  <input id="d" type="date" aria-label="Próximo contato">
+  <button id="add">Adicionar lead</button>
+</section>
+<section class="board" id="board" aria-label="Funil"></section>
+<p class="lost" id="lost"></p>
+</main>
+<script>
+const ST=["Novo","Em contato","Proposta enviada","Negociação","Ganho","Perdido"];
+const iso=o=>{const d=new Date();d.setDate(d.getDate()+o);return d.toISOString().slice(0,10)};
+const seed=[
+["Studio Maré Pilates","(85) 99999-0001",450,"Ganho",iso(20)],
+["Barbearia Do Zé","(85) 99999-0002",350,"Negociação",iso(-2)],
+["Clínica Sorriso Praia","(85) 99999-0003",900,"Proposta enviada",iso(1)],
+["Loja Vento Sul","(85) 99999-0004",300,"Em contato",iso(2)],
+["Escola Aprender+","(85) 99999-0007",1200,"Proposta enviada",iso(-3)],
+["Doceria Maria Bolo","(85) 99999-0008",200,"Novo",iso(2)],
+["Oficina Turbo Car","(85) 99999-0009",500,"Em contato",iso(3)],
+["Ótica Visão Clara","(85) 99999-0010",700,"Negociação",iso(0)],
+["Restaurante Brisa","(85) 99999-0011",800,"Ganho",iso(15)],
+["Pet Shop Patinhas","(85) 99999-0006",250,"Perdido",iso(-10)]
+].map((a,i)=>({id:i+1,nome:a[0],tel:a[1],valor:a[2],status:a[3],prox:a[4]}));
+let leads=seed;
+try{const s=localStorage.getItem("crm-exemplo");if(s)leads=JSON.parse(s)}catch(e){}
+const save=()=>{try{localStorage.setItem("crm-exemplo",JSON.stringify(leads))}catch(e){}};
+const brl=n=>"R$ "+Number(n||0).toLocaleString("pt-BR");
+const today=new Date().toISOString().slice(0,10);
+const fmt=s=>s?s.split("-").reverse().join("/"):"sem data";
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const late=l=>l.prox&&l.prox<today&&l.status!=="Ganho"&&l.status!=="Perdido";
+function render(){
+  const g=leads.filter(l=>l.status==="Ganho").length,p=leads.filter(l=>l.status==="Perdido").length;
+  const open=leads.filter(l=>l.status!=="Ganho"&&l.status!=="Perdido");
+  const pipe=leads.filter(l=>l.status==="Proposta enviada"||l.status==="Negociação").reduce((a,l)=>a+Number(l.valor||0),0);
+  const won=leads.filter(l=>l.status==="Ganho").reduce((a,l)=>a+Number(l.valor||0),0);
+  const k=[[leads.length,"Total de leads"],[open.length,"Em aberto"],[g+p?Math.round(g/(g+p)*100)+"%":"0%","Taxa de conversão"],[leads.filter(late).length,"Follow-ups atrasados"],[brl(pipe),"Em negociação"],[brl(won),"Receita mensal fechada"]];
+  document.getElementById("kpis").innerHTML=k.map(x=>`<div class="kpi"><b>${x[0]}</b><span>${x[1]}</span></div>`).join("");
+  document.getElementById("board").innerHTML=ST.slice(0,5).map(s=>{
+    const items=leads.filter(l=>l.status===s);
+    return `<div class="col"><h2>${s}<em>${items.length}</em></h2>${items.length?items.map(card).join(""):'<p class="empty">Nenhum lead aqui.</p>'}</div>`}).join("");
+  const lost=leads.filter(l=>l.status==="Perdido");
+  document.getElementById("lost").textContent=lost.length?"Perdidos: "+lost.map(l=>l.nome).join(", "):"";
+}
+function card(l){
+  return `<div class="lead ${late(l)?"late":""}"><b>${esc(l.nome)}</b><small>${esc(l.tel||"sem telefone")} · ${brl(l.valor)}</small>
+  <small class="${late(l)?"late-t":""}">Próximo contato: ${fmt(l.prox)}${late(l)?" (atrasado)":""}</small>
+  <div class="row"><select data-id="${l.id}" aria-label="Etapa de ${esc(l.nome)}">${ST.map(s=>`<option${s===l.status?" selected":""}>${s}</option>`).join("")}</select>
+  <button class="ghost" data-del="${l.id}" aria-label="Excluir ${esc(l.nome)}">Excluir</button></div></div>`}
+document.addEventListener("change",e=>{const id=e.target.dataset.id;if(!id)return;const l=leads.find(x=>x.id==id);l.status=e.target.value;save();render()});
+document.addEventListener("click",e=>{const id=e.target.dataset.del;if(!id)return;leads=leads.filter(x=>x.id!=id);save();render()});
+document.getElementById("add").addEventListener("click",()=>{
+  const n=document.getElementById("n").value.trim();
+  if(!n){document.getElementById("n").focus();return}
+  leads.push({id:Date.now(),nome:n,tel:document.getElementById("t").value,valor:document.getElementById("v").value||0,status:"Novo",prox:document.getElementById("d").value});
+  ["n","t","v","d"].forEach(i=>document.getElementById(i).value="");save();render()});
+render();
+</script>
+</body>
+</html>
